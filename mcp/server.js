@@ -26,7 +26,7 @@ function run(cmd, args) {
 
 async function listCompositions({ projectPath, props }) {
   const entry = projectPath || DEFAULT_TEMPLATE;
-  const args = ['-y', 'remotion', 'compositions', entry];
+  const args = ['--no-install', 'remotion', 'compositions', entry];
   if (props != null) {
     if (typeof props === 'string') args.push(`--props=${props}`);
     else args.push(`--props=${JSON.stringify(props)}`);
@@ -37,7 +37,7 @@ async function listCompositions({ projectPath, props }) {
 
 async function renderRemotion({ projectPath, compositionId, outputPath, props, extraArgs }) {
   const entry = projectPath || DEFAULT_TEMPLATE;
-  const args = ['-y', 'remotion', 'render', entry, compositionId, outputPath];
+  const args = ['--no-install', 'remotion', 'render', entry, compositionId, outputPath];
   if (props != null) {
     if (typeof props === 'string') args.push(`--props=${props}`);
     else args.push(`--props=${JSON.stringify(props)}`);
