@@ -39,7 +39,7 @@ Why CLI first:
 ## Requirements
 
 - Node.js (already)
-- `ffmpeg` available in PATH (Remotion requires it)
+- Remotion includes a bundled FFmpeg on most platforms; if you hit an FFmpeg error, install ffmpeg via your OS package manager.
 
 ## What’s included
 
