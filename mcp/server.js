@@ -1,17 +1,12 @@
 import { spawn } from 'node:child_process';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
+import {
+  ListToolsRequestSchema,
+  CallToolRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 
-const RenderArgs = z.object({
-  projectPath: z.string().describe('Path to Remotion entry point or project root.'),
-  compositionId: z.string().describe('Composition ID to render.'),
-  outputPath: z.string().describe('Output file path (e.g. /tmp/out.mp4).'),
-  props: z.any().optional().nullable().describe('Input props: JSON object or JSON string or path to JSON file.'),
-  extraArgs: z.array(z.string()).optional().default([]).describe('Extra args to pass to Remotion CLI (e.g. ["--codec=h264"]).'),
-});
-
-async function runRemotionRender({ projectPath, compositionId, outputPath, props, extraArgs }) {
+function runRemotionRender({ projectPath, compositionId, outputPath, props, extraArgs }) {
   const args = ['-y', 'remotion', 'render', projectPath, compositionId, outputPath];
 
   if (props != null) {
@@ -23,7 +18,7 @@ async function runRemotionRender({ projectPath, compositionId, outputPath, props
   }
   for (const a of (extraArgs || [])) args.push(a);
 
-  return await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const child = spawn('npx', args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
     let err = '';
@@ -42,27 +37,58 @@ async function runRemotionRender({ projectPath, compositionId, outputPath, props
   });
 }
 
+const tools = [
+  {
+    name: 'render_remotion',
+    description: 'Render a Remotion composition to a media file using `npx remotion render`.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectPath: { type: 'string', description: 'Path to Remotion entry point or project root.' },
+        compositionId: { type: 'string', description: 'Composition ID to render.' },
+        outputPath: { type: 'string', description: 'Output file path (e.g. /tmp/out.mp4).' },
+        props: {
+          anyOf: [{ type: 'object' }, { type: 'string' }, { type: 'null' }],
+          default: null,
+          description: 'Input props: JSON object, JSON string, or path to JSON file. Passed to --props.',
+        },
+        extraArgs: {
+          type: 'array',
+          items: { type: 'string' },
+          default: [],
+          description: 'Extra CLI args to pass through (e.g. ["--codec=h264"]).',
+        },
+      },
+      required: ['projectPath', 'compositionId', 'outputPath'],
+      additionalProperties: false,
+    },
+  },
+];
+
 const server = new Server(
   { name: 'genie-remotion', version: '0.1.0' },
   { capabilities: { tools: {} } }
 );
 
-server.tool(
-  'render_remotion',
-  'Render a Remotion composition to a media file using `npx remotion render`.',
-  RenderArgs,
-  async (args) => {
-    const result = await runRemotionRender(args);
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return { tools };
+});
+
+server.setRequestHandler(CallToolRequestSchema, async (req) => {
+  const { name, arguments: args } = req.params;
+
+  if (name !== 'render_remotion') {
     return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(result),
-        },
-      ],
+      content: [{ type: 'text', text: JSON.stringify({ ok: false, error: `Unknown tool: ${name}` }) }],
+      isError: true,
     };
   }
-);
+
+  const result = await runRemotionRender(args || {});
+  return {
+    content: [{ type: 'text', text: JSON.stringify(result) }],
+  };
+});
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
