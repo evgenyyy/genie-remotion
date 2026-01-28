@@ -14,6 +14,7 @@
   "private": "true",
   "type": "module",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.3"
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@remotion/cli": "^4.0.410"
   }
 }
