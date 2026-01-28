@@ -1,0 +1,14 @@
+{
+  "name": "genie-remotion-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "remotion studio",
+    "compositions": "remotion compositions",
+    "render": "remotion render"
+  },
+  "dependencies": {
+    "remotion": "^4.0.0",
+    "zod": "^4.3.6"
+  }
+}
