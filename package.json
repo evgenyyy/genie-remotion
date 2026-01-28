@@ -1,0 +1,16 @@
+{
+  "name": "genie-remotion",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node -c mcp/server.js",
+    "dev": "node mcp/server.js",
+    "render:demo": "node scripts/render-demo.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": "true",
+  "type": "module"
+}
