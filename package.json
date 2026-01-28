@@ -12,5 +12,8 @@
   "author": "",
   "license": "ISC",
   "private": "true",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3"
+  }
 }
