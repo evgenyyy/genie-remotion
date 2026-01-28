@@ -7,7 +7,9 @@ import {
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-const DEFAULT_TEMPLATE = path.resolve(new URL('.', import.meta.url).pathname, '../remotion-template/src/index.ts');
+const repoRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const remotionBin = path.join(repoRoot, 'node_modules', '.bin', 'remotion');
+const DEFAULT_TEMPLATE = path.join(repoRoot, 'remotion-template', 'src', 'index.ts');
 
 function run(cmd, args) {
   return new Promise((resolve, reject) => {
@@ -26,31 +28,31 @@ function run(cmd, args) {
 
 async function listCompositions({ projectPath, props }) {
   const entry = projectPath || DEFAULT_TEMPLATE;
-  const args = ['--no-install', 'remotion', 'compositions', entry];
+  const args = ['compositions', entry];
   if (props != null) {
     if (typeof props === 'string') args.push(`--props=${props}`);
     else args.push(`--props=${JSON.stringify(props)}`);
   }
-  const { stdout } = await run('npx', args);
+  const { stdout } = await run(remotionBin, args);
   return { ok: true, entry, stdout };
 }
 
 async function renderRemotion({ projectPath, compositionId, outputPath, props, extraArgs }) {
   const entry = projectPath || DEFAULT_TEMPLATE;
-  const args = ['--no-install', 'remotion', 'render', entry, compositionId, outputPath];
+  const args = ['render', entry, compositionId, outputPath];
   if (props != null) {
     if (typeof props === 'string') args.push(`--props=${props}`);
     else args.push(`--props=${JSON.stringify(props)}`);
   }
   for (const a of (extraArgs || [])) args.push(a);
-  const { stdout } = await run('npx', args);
+  const { stdout } = await run(remotionBin, args);
   return { ok: true, entry, outputPath, tail: stdout.slice(-2000) };
 }
 
 const tools = [
   {
     name: 'list_compositions',
-    description: 'List compositions for a Remotion entry point using `npx remotion compositions`. If projectPath is omitted, uses the bundled template.',
+    description: 'List compositions for a Remotion entry point using the local Remotion CLI. If projectPath is omitted, uses the bundled template.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -62,7 +64,7 @@ const tools = [
   },
   {
     name: 'render_remotion',
-    description: 'Render a Remotion composition using `npx remotion render`. If projectPath is omitted, uses the bundled template.',
+    description: 'Render a Remotion composition using the local Remotion CLI. If projectPath is omitted, uses the bundled template.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -79,7 +81,7 @@ const tools = [
 ];
 
 const server = new Server(
-  { name: 'genie-remotion', version: '0.2.0' },
+  { name: 'genie-remotion', version: '0.2.1' },
   { capabilities: { tools: {} } }
 );
 
